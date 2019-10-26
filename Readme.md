@@ -5,7 +5,7 @@ Fix long filenames to satisfy the 143-byte limit of eCryptFS.
 
 ## Usage
 
-This tool is designed only for people who know what they are doing.
+This tool is designed only for people who know what they are doing, incorrect using of this tool may cause data damage.
 
 1. ```find /path/to/directory | sort > input.txt```
 2. ```./ecryptfs-filename-fixer < input.txt > output.sh```
