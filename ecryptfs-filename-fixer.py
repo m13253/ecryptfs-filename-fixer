@@ -57,10 +57,10 @@ def walk(curdir, path):
                 record_file += '…'
             record_file += '.orig_name'
             if path:
-                print("echo -n '{}' >'{}/{}'".format(escape_path(norm_segment), escape_path(path), escape_path(record_file)))
+                print("echo -n '{}' > '{}/{}'".format(escape_path(norm_segment), escape_path(path), escape_path(record_file)))
                 walk(child, path + '/' + new_segment)
             else:
-                print("echo -n '{}' >'{}'".format(escape_path(norm_segment), escape_path(record_file)))
+                print("echo -n '{}' > '{}'".format(escape_path(norm_segment), escape_path(record_file)))
                 walk(child, new_segment)
         elif path:
             walk(child, path + '/' + segment)
