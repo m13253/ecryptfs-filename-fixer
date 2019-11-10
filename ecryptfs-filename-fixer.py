@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 import sys
+import unicodedata
 
 
 def escape_path(path):
@@ -27,39 +27,40 @@ def escape_path(path):
 def walk(curdir, path):
     for segment, child in curdir.items():
         if len(segment.encode('utf-8', 'replace')) > 143:
-            new_segment = segment
+            norm_segment = unicodedata.normalize('NFC', segment)
+            new_segment = norm_segment
+            trimmed = False
             segment_split = segment.rsplit('.', 1)
-            if len(segment_split) == 2 and len(segment[0].encode(
-                    'utf-8', 'replace')) + len(segment_split[1].encode(
-                        'utf-8', 'replace')) <= 139:
-                while len((new_segment + '….' + segment_split[1]).encode(
-                        'utf-8', 'replace')) > 143:
+            if len(segment_split) == 2 and len(segment[0].encode('utf-8', 'replace')) + len(segment_split[1].encode('utf-8', 'replace')) <= 139:
+                while len((new_segment + '….' + segment_split[1]).encode('utf-8', 'replace')) > 143:
                     new_segment = new_segment[:-1]
-                new_segment += '….'
+                    trimmed = True
+                if trimmed:
+                    new_segment += '…'
+                new_segment += '.'
                 new_segment += segment_split[1]
             else:
                 while len(new_segment.encode('utf-8', 'replace')) > 140:
                     new_segment = new_segment[:-1]
+                    trimmed = True
                 new_segment += '…'
             if path:
-                print("mv -nv '{}/{}' '{}/{}'".format(
-                    escape_path(path), escape_path(segment), escape_path(path),
-                    escape_path(new_segment)))
+                print("mv -nv '{}/{}' '{}/{}'".format(escape_path(path), escape_path(segment), escape_path(path), escape_path(new_segment)))
             else:
-                print("mv -nv '{}' '{}'".format(
-                    escape_path(segment), escape_path(new_segment)))
-            record_file = segment
+                print("mv -nv '{}' '{}'".format(escape_path(segment), escape_path(new_segment)))
+            record_file = norm_segment
+            trimmed = False
             while len((record_file).encode('utf-8', 'replace')) > 130:
                 record_file = record_file[:-1]
-            record_file += '….orig_name'
+                trimmed = True
+            if trimmed:
+                record_file += '…'
+            record_file += '.orig_name'
             if path:
-                print("echo -n '{}' >'{}/{}'".format(
-                    escape_path(segment), escape_path(path),
-                    escape_path(record_file)))
+                print("echo -n '{}' >'{}/{}'".format(escape_path(norm_segment), escape_path(path), escape_path(record_file)))
                 walk(child, path + '/' + new_segment)
             else:
-                print("echo -n '{}' >'{}'".format(
-                    escape_path(segment), escape_path(record_file)))
+                print("echo -n '{}' >'{}'".format(escape_path(norm_segment), escape_path(record_file)))
                 walk(child, new_segment)
         elif path:
             walk(child, path + '/' + segment)
